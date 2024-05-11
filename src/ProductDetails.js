@@ -3,7 +3,9 @@ import { useParams, Navigate } from "react-router-dom";
 import { db } from './config/firebase-config';
 import { doc, getDoc } from 'firebase/firestore';
 import { useCart } from './CartContext';
+import { loadStripe } from '@stripe/stripe-js';
 
+const stripePromise = loadStripe('pk_test_51PF9CGJrecP0hJeCDUGso95HtTCc5Oo1cEDKk0g7Vr5Z3gi5LvxShZ7Lqq2ZdQ7pUJVl08LgVCtKF5rMRpypO2K700akA1oiXw'); // Replace with your publishable key
 
 function ProductDetails() {
   const { productId } = useParams();
@@ -29,9 +31,35 @@ function ProductDetails() {
   }, [productId]);
 
   const handleAddToCart = () => {
-    // Handle adding the product to the cart
     addToCart(product);
     console.log("Product added to cart:", product);
+  };
+
+  const handleCheckout = async () => {
+    const stripe = await stripePromise;
+
+    // Make a request to your backend to create a checkout session
+    const response = await fetch('http://localhost:4000/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId, quantity: 1 }), // Send product ID and quantity to the backend
+    });
+
+    if (response.ok) {
+      // If the request is successful, retrieve the session ID from the response
+      const session = await response.json();
+
+      // Redirect the user to the Stripe Checkout page using the session ID
+      const result = await stripe.redirectToCheckout({ sessionId: session.id });
+
+      if (result.error) {
+        console.error("Error redirecting to Stripe Checkout:", result.error.message);
+      }
+    } else {
+      console.error("Error creating checkout session");
+    }
   };
 
   if (!product) {
@@ -49,6 +77,7 @@ function ProductDetails() {
         </div>
       <p>Potency: {product.potency}</p>
       <button onClick={handleAddToCart} className="button">Add to Cart</button>
+      <button onClick={handleCheckout} className="button">Checkout</button> {/* Added checkout button */}
     </div>
   );
 }

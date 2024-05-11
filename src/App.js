@@ -4,6 +4,7 @@ import { db } from './config/firebase-config';
 import { collection, getDocs } from 'firebase/firestore';
 import Navbar from "./Navbar";
 import ProductCard from "./Product";
+import CartPage from "./Cart";
 import ProductDetails from "./ProductDetails"; // Import the ProductDetails component
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; // Import BrowserRouter, Routes, and Route
 
@@ -52,6 +53,7 @@ function App() {
           <Routes>
             {/* Route for the product details page */}
             <Route path="/product/:productId" element={<ProductDetails />} />
+            <Route path="/cart" element={<CartPage />} />
             {/* Route for the product list */}
             <Route path="/" element={<ProductList productList={productList} />} />
           </Routes>
